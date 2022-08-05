@@ -84,7 +84,7 @@ resource "azurerm_virtual_machine" "bastion" {
   tags = {
     name        = "bastion"
     role        = "bastion"
-    environment = "staging"
+    environment = "test"
   }
 
 }
