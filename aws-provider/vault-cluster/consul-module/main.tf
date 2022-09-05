@@ -6,13 +6,22 @@ resource "aws_vpc" "VaultCluster_VPC" {
   }
 }
 
+resource "aws_subnet" "consul_subnet" {
+  vpc_id = aws_vpc.VaultCluster_VPC.id
+  cidr_block = var.subnet-idr-block
+
+  tags = {
+    "Name" = "consul_subnet"
+  }
+}
+
 resource "aws_security_group" "consul_SG" {
   name = "consul_SG"
   vpc_id = aws_vpc.VaultCluster_VPC.id
 
   ingress {
     cidr_blocks = [var.vpc_cidr_block]
-    description = "Consul Server RPC address"
+    description = "Allows servers to handle incoming requests from other agents"
     from_port = 8300
     protocol = "tcp"
     to_port = 8300
@@ -20,7 +29,7 @@ resource "aws_security_group" "consul_SG" {
 
   ingress {
     cidr_blocks = [var.vpc_cidr_block]
-    description = ""
+    description = "Allows gossip in the LAN"
     from_port = 8301
     to_port = 8301
     protocol = "tcp"
@@ -28,10 +37,50 @@ resource "aws_security_group" "consul_SG" {
 
   ingress {
     cidr_blocks = [var.vpc_cidr_block]
-    description = "Consul The Serf LAN port"
+    description = "Allows gossip in the LAN"
     from_port = 8301
     to_port = 8301
     protocol = "udp"
+  }
+
+  ingress {
+    cidr_blocks = [var.vpc_cidr_block]
+    description = "Allows servers to gossip over the WAN, to other servers"
+    from_port = 8302
+    to_port = 8302
+    protocol = "tcp"
+  }
+
+  ingress {
+    cidr_blocks = [var.vpc_cidr_block]
+    description = "Allows servers to gossip over the WAN, to other servers"
+    from_port = 8302
+    to_port = 8302
+    protocol = "udp"
+  }
+
+  ingress {
+    cidr_blocks = [var.vpc_cidr_block]
+    description = "The DNS server"
+    from_port = 8600
+    to_port = 8600
+    protocol = "tcp"
+  }
+
+  ingress {
+    cidr_blocks = [var.vpc_cidr_block]
+    description = "The DNS server"
+    from_port = 8600
+    to_port = 8600
+    protocol = "udp"
+  }
+
+  ingress {
+    cidr_blocks = [var.vpc_cidr_block]
+    description = "The HTTP API"
+    from_port = 8500
+    to_port = 8500
+    protocol = "tcp"
   }
 }
 
@@ -45,5 +94,14 @@ resource "aws_launch_configuration" "consul_LC" {
   lifecycle {
     create_before_destroy = true
   }
+}
 
+resource "aws_autoscaling_group" "consul_ASG" {
+  name = "consul_ASG"   
+  availability_zones = [var.availability-zones]
+  min_size = 1
+  max_size = 3
+  desired_capacity = 3
+  launch_configuration = aws_launch_configuration.consul_LC.name
+  vpc_zone_identifier = [aws_subnet.consul_subnet.id]
 }
