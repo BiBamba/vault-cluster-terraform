@@ -6,12 +6,12 @@ resource "aws_vpc" "VaultCluster_VPC" {
   }
 }
 
-resource "aws_subnet" "consul_subnet" {
+resource "aws_subnet" "consul-cluster-subnet" {
   vpc_id = aws_vpc.VaultCluster_VPC.id
   cidr_block = var.subnet-idr-block
 
   tags = {
-    "Name" = "consul_subnet"
+    "Name" = "consul-cluster-subnet"
   }
 }
 
@@ -25,6 +25,7 @@ resource "aws_security_group" "consul_SG" {
     from_port = 8300
     protocol = "tcp"
     to_port = 8300
+    self = true
   } 
 
   ingress {
@@ -33,6 +34,7 @@ resource "aws_security_group" "consul_SG" {
     from_port = 8301
     to_port = 8301
     protocol = "tcp"
+    self = true
   }
 
   ingress {
@@ -41,6 +43,7 @@ resource "aws_security_group" "consul_SG" {
     from_port = 8301
     to_port = 8301
     protocol = "udp"
+    self = true
   }
 
   ingress {
@@ -49,6 +52,7 @@ resource "aws_security_group" "consul_SG" {
     from_port = 8302
     to_port = 8302
     protocol = "tcp"
+    self = true
   }
 
   ingress {
@@ -57,6 +61,7 @@ resource "aws_security_group" "consul_SG" {
     from_port = 8302
     to_port = 8302
     protocol = "udp"
+    self = true
   }
 
   ingress {
@@ -65,6 +70,7 @@ resource "aws_security_group" "consul_SG" {
     from_port = 8600
     to_port = 8600
     protocol = "tcp"
+    self = true
   }
 
   ingress {
@@ -73,6 +79,7 @@ resource "aws_security_group" "consul_SG" {
     from_port = 8600
     to_port = 8600
     protocol = "udp"
+    self = true
   }
 
   ingress {
@@ -81,6 +88,7 @@ resource "aws_security_group" "consul_SG" {
     from_port = 8500
     to_port = 8500
     protocol = "tcp"
+    self = true
   }
 }
 
@@ -103,5 +111,5 @@ resource "aws_autoscaling_group" "consul_ASG" {
   max_size = 3
   desired_capacity = 3
   launch_configuration = aws_launch_configuration.consul_LC.name
-  vpc_zone_identifier = [aws_subnet.consul_subnet.id]
+  vpc_zone_identifier = [aws_subnet.consul-cluster-subnet.id]
 }
