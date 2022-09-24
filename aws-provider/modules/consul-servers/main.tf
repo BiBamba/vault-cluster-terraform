@@ -103,13 +103,3 @@ resource "aws_launch_configuration" "consul_LC" {
     create_before_destroy = true
   }
 }
-
-resource "aws_autoscaling_group" "consul_ASG" {
-  name = "consul_ASG"   
-  availability_zones = [var.availability-zones]
-  min_size = 1
-  max_size = 3
-  desired_capacity = 3
-  launch_configuration = aws_launch_configuration.consul_LC.name
-  vpc_zone_identifier = [aws_subnet.consul-cluster-subnet.id]
-}
