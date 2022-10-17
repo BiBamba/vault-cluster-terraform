@@ -113,7 +113,7 @@ resource "aws_launch_template" "consul_LT" {
 
 resource "aws_autoscaling_group" "consul_server_ASG" {
   availabilty_zones = var.availability_zones
-  desired_capacity = var.servers_number
+  desired_capacity = var.number_of_servers
   max_size = var.max_number_of_servers
   min_size = var.min_number_of_servers
 
