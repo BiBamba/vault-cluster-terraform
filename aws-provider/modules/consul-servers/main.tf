@@ -92,14 +92,34 @@ resource "aws_security_group" "consul_SG" {
   }
 }
 
-resource "aws_launch_configuration" "consul_LC" {
+resource "aws_launch_template" "consul_LT" {
   name_prefix = "consul-server-"
   image_id = var.image-id
   instance_type = var.instance-type
-  user_data = file(consul-config.sh)
-  security_groups = [aws_security_group.consul_SG.id]
+  key_name = "consul_server_key"
+
+  network_interfaces {
+    associate_public_ip_address = true
+  }
+
+  vpc_security_groups_ids = [aws_security_group.consul_SG.id]
 
   lifecycle {
     create_before_destroy = true
   }
+
+  user_data = filebase64(consul-config.sh)
+}
+
+resource "aws_autoscaling_group" "consul_server_ASG" {
+  availabilty_zones = var.availability_zones
+  desired_capacity = var.servers_number
+  max_size = var.max_number_of_servers
+  min_size = var.min_number_of_servers
+
+  launch_template {
+    id = aws_launch_template.consul_LT.id
+    version = "$Lastest"
+  }
+
 }
